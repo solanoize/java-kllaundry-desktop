@@ -145,9 +145,9 @@ public class BarangForm extends javax.swing.JFrame {
         });
         tabelBarang.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         tabelBarang.setShowGrid(true);
-        tabelBarang.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                tabelBarangMouseClicked(evt);
+        tabelBarang.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                tabelBarangPropertyChange(evt);
             }
         });
         jScrollPane1.setViewportView(tabelBarang);
@@ -180,20 +180,19 @@ public class BarangForm extends javax.swing.JFrame {
         try {
             String kodeBarang = textFieldKodeBarang.getText();
             String namaBarang = textFieldNamaBarang.getText();
-            BarangEntity barangEntity = new BarangEntity(kodeBarang, namaBarang);
             
             BarangDao barangDao = new BarangDao();
-            if (!isDetail) {
-                barangDao.create(barangEntity);
+            if (barangEntity == null) {
+                barangDao.create(new BarangEntity(kodeBarang, namaBarang));
             } else {
-                barangDao.update(barangEntity);
+                barangDao.update(barangEntity.getKodeBarang(), new BarangEntity(kodeBarang, namaBarang));
             }
             
             textFieldKodeBarang.setText("");
             textFieldNamaBarang.setText("");
             
             onRefreshData();
-            isDetail = false;
+            barangEntity = null;
             logger.info("Berhasil menyimpan data");
         } catch (Exception e) {
             logger.error(e.getMessage());
@@ -209,24 +208,12 @@ public class BarangForm extends javax.swing.JFrame {
         onRefreshData();
     }//GEN-LAST:event_formWindowOpened
 
-    private void tabelBarangMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tabelBarangMouseClicked
-        // TODO add your handling code here:
-        int selectedRow = tabelBarang.getSelectedRow();
-        if (selectedRow != -1) {
-            isDetail = true;
-            String kodeBarang = tabelBarang.getValueAt(selectedRow, 0).toString();
-            String namaBarang = tabelBarang.getValueAt(selectedRow, 1).toString();
-            textFieldKodeBarang.setText(kodeBarang);
-            textFieldNamaBarang.setText(namaBarang);
-        }
-    }//GEN-LAST:event_tabelBarangMouseClicked
-
     private void buttonBatalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonBatalActionPerformed
         // TODO add your handling code here:
+        barangEntity = null;
         textFieldKodeBarang.setText("");
         textFieldNamaBarang.setText("");
         tabelBarang.clearSelection();
-        isDetail = false;
     }//GEN-LAST:event_buttonBatalActionPerformed
 
     private void textFieldSearchKodeBarangKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_textFieldSearchKodeBarangKeyPressed
@@ -238,17 +225,46 @@ public class BarangForm extends javax.swing.JFrame {
     }//GEN-LAST:event_textFieldSearchKodeBarangKeyPressed
 
     private void buttonHapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonHapusActionPerformed
-        int selectedRow = tabelBarang.getSelectedRow();
-        if (selectedRow == -1 && !isDetail) {
-            JOptionPane.showMessageDialog(null, "Anda belum memilih data", "Info", JOptionPane.WARNING_MESSAGE);
-        } else {
-            int result = JOptionPane.showConfirmDialog(null, "Anda yakin ingin menghapus?", "Hapus Data", JOptionPane.WARNING_MESSAGE);
-            System.out.println(result);
-            if (result == 0) {
-                JOptionPane.showMessageDialog(null, "Berhasil menghapus data.", "Hapus Data", JOptionPane.INFORMATION_MESSAGE);
+        try {
+            int selectedRow = tabelBarang.getSelectedRow();
+            if (selectedRow == -1 && barangEntity == null) {
+                JOptionPane.showMessageDialog(null, "Anda belum memilih data", "Info", JOptionPane.WARNING_MESSAGE);
+            } else {
+                int result = JOptionPane.showConfirmDialog(null, "Anda yakin ingin menghapus?", "Hapus Data", JOptionPane.WARNING_MESSAGE);
+                if (result == 0) {
+                    BarangDao barangDao = new BarangDao();
+                    if (barangDao.delete(barangEntity.getKodeBarang())) {
+                        JOptionPane.showMessageDialog(null, "Berhasil menghapus data.", "Hapus Data", JOptionPane.INFORMATION_MESSAGE);
+                        barangEntity = null;
+                        textFieldKodeBarang.setText("");
+                        textFieldNamaBarang.setText("");
+                        onRefreshData();
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Gagal menghapus data.", "Hapus Data", JOptionPane.WARNING_MESSAGE);
+                    }
+                }
             }
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            JOptionPane.showMessageDialog(
+                    null, 
+                    "Gagal menyimpan data", 
+                    "Ups", 
+                    JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_buttonHapusActionPerformed
+
+    private void tabelBarangPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_tabelBarangPropertyChange
+        // TODO add your handling code here:
+        int selectedRow = tabelBarang.getSelectedRow();
+        if (selectedRow != -1) {
+            String kodeBarang = tabelBarang.getValueAt(selectedRow, 0).toString();
+            String namaBarang = tabelBarang.getValueAt(selectedRow, 1).toString();
+            barangEntity = new BarangEntity(kodeBarang, namaBarang);
+            textFieldKodeBarang.setText(kodeBarang);
+            textFieldNamaBarang.setText(namaBarang);
+        }
+    }//GEN-LAST:event_tabelBarangPropertyChange
 
     public void onRefreshData() {
         DefaultTableModel model = (DefaultTableModel) tabelBarang.getModel();
@@ -273,5 +289,6 @@ public class BarangForm extends javax.swing.JFrame {
     private javax.swing.JTextField textFieldNamaBarang;
     private javax.swing.JTextField textFieldSearchKodeBarang;
     // End of variables declaration//GEN-END:variables
-    private boolean isDetail = false;
+
+    private BarangEntity barangEntity;
 }
