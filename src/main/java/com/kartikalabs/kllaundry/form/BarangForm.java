@@ -126,10 +126,7 @@ public class BarangForm extends javax.swing.JFrame {
 
         tabelBarang.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null},
-                {null, null},
-                {null, null},
-                {null, null}
+
             },
             new String [] {
                 "Kode Barang", "Nama Barang"
@@ -219,7 +216,19 @@ public class BarangForm extends javax.swing.JFrame {
     private void textFieldSearchKodeBarangKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_textFieldSearchKodeBarangKeyPressed
         // TODO add your handling code here:
         if (evt.getKeyCode() == 10) {
-            System.out.println(textFieldSearchKodeBarang.getText());
+            try {
+                DefaultTableModel model = (DefaultTableModel) tabelBarang.getModel();
+                model.setRowCount(0);
+
+                BarangDao barangDao = new BarangDao();
+                String keyword = textFieldSearchKodeBarang.getText();
+                for (BarangEntity barang: barangDao.search(keyword)) {
+                    model.addRow(new Object[]{barang.getKodeBarang(), barang.getNamaBarang()});
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                logger.error(e.getMessage());
+            }
             
         }
     }//GEN-LAST:event_textFieldSearchKodeBarangKeyPressed

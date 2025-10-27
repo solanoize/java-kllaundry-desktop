@@ -99,6 +99,36 @@ public class BarangDao implements BaseDao<BarangEntity, String>{
         }
     }
 
+    @Override
+    public List<BarangEntity> search(String keyword) {
+        String sql = "SELECT * FROM barang WHERE kode_barang LIKE ?;";
+        
+        try (
+                Connection connection = DatabaseService.getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        ) {
+            
+            List<BarangEntity> barangEntities = new ArrayList<>();
+            preparedStatement.setString(1, "%" + keyword + "%");
+            
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    String kodeBarang = resultSet.getString("kode_barang");
+                    String namaBarang = resultSet.getString("nama_barang");
+                    barangEntities.add(new BarangEntity(kodeBarang, namaBarang));
+                }
+            } catch (Exception e) {
+                logger.error(e.getMessage());
+                throw new RuntimeException("Gagal ambil data", e);
+            }
+            
+            return barangEntities;
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            throw new RuntimeException("Gagal ambil data", e);
+        }
+    }
+
     
     
    
