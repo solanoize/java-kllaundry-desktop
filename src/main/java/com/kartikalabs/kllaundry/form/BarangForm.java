@@ -3,6 +3,8 @@ package com.kartikalabs.kllaundry.form;
 import com.kartikalabs.kllaundry.dao.BarangDao;
 import com.kartikalabs.kllaundry.entity.BarangEntity;
 import javax.swing.JOptionPane;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +38,7 @@ public class BarangForm extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Form Barang");
-        setResizable(false);
+        setLocationByPlatform(true);
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowOpened(java.awt.event.WindowEvent evt) {
                 formWindowOpened(evt);
@@ -49,6 +51,7 @@ public class BarangForm extends javax.swing.JFrame {
 
         jLabel2.setText("Nama Barang");
 
+        buttonSimpan.setIcon(new javax.swing.ImageIcon(getClass().getResource("/assets/save.png"))); // NOI18N
         buttonSimpan.setText("Simpan");
         buttonSimpan.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -90,9 +93,7 @@ public class BarangForm extends javax.swing.JFrame {
                             .addComponent(jLabel2))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(textFieldKodeBarang, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addComponent(textFieldKodeBarang, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(textFieldNamaBarang)))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(buttonSimpan)
@@ -100,7 +101,7 @@ public class BarangForm extends javax.swing.JFrame {
                         .addComponent(buttonBatal)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonHapus)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 52, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(textFieldSearchKodeBarang, javax.swing.GroupLayout.PREFERRED_SIZE, 290, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
@@ -115,13 +116,13 @@ public class BarangForm extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
                     .addComponent(textFieldNamaBarang, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 8, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonSimpan)
                     .addComponent(buttonHapus)
                     .addComponent(buttonBatal)
                     .addComponent(textFieldSearchKodeBarang, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap())
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         tabelBarang.setModel(new javax.swing.table.DefaultTableModel(
@@ -142,11 +143,22 @@ public class BarangForm extends javax.swing.JFrame {
         });
         tabelBarang.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         tabelBarang.setShowGrid(true);
-        tabelBarang.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-            public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                tabelBarangPropertyChange(evt);
+        tabelBarang.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            public void valueChanged(ListSelectionEvent event) {
+                if (!event.getValueIsAdjusting()) {
+                    int selectedRow = tabelBarang.getSelectedRow();
+
+                    if (selectedRow != -1) {
+                        String kodeBarang = tabelBarang.getValueAt(selectedRow, 0).toString();
+                        String namaBarang = tabelBarang.getValueAt(selectedRow, 1).toString();
+                        barangEntity = new BarangEntity(kodeBarang, namaBarang);
+                        textFieldKodeBarang.setText(kodeBarang);
+                        textFieldNamaBarang.setText(namaBarang);
+                    }
+                }
             }
         });
+
         jScrollPane1.setViewportView(tabelBarang);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -163,10 +175,10 @@ public class BarangForm extends javax.swing.JFrame {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 186, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 250, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -180,8 +192,10 @@ public class BarangForm extends javax.swing.JFrame {
             
             BarangDao barangDao = new BarangDao();
             if (barangEntity == null) {
+                System.out.println("NULL CREATE");
                 barangDao.create(new BarangEntity(kodeBarang, namaBarang));
             } else {
+                System.out.println("UPDATE");
                 barangDao.update(barangEntity.getKodeBarang(), new BarangEntity(kodeBarang, namaBarang));
             }
             
@@ -262,18 +276,6 @@ public class BarangForm extends javax.swing.JFrame {
                     JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_buttonHapusActionPerformed
-
-    private void tabelBarangPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_tabelBarangPropertyChange
-        // TODO add your handling code here:
-        int selectedRow = tabelBarang.getSelectedRow();
-        if (selectedRow != -1) {
-            String kodeBarang = tabelBarang.getValueAt(selectedRow, 0).toString();
-            String namaBarang = tabelBarang.getValueAt(selectedRow, 1).toString();
-            barangEntity = new BarangEntity(kodeBarang, namaBarang);
-            textFieldKodeBarang.setText(kodeBarang);
-            textFieldNamaBarang.setText(namaBarang);
-        }
-    }//GEN-LAST:event_tabelBarangPropertyChange
 
     public void onRefreshData() {
         DefaultTableModel model = (DefaultTableModel) tabelBarang.getModel();

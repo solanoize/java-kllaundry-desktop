@@ -23,7 +23,7 @@ public class DatabaseService {
             Files.createDirectories(appFolder);
         }
         
-        Path dbPath = appFolder.resolve("db.sqlite");
+        Path dbPath = appFolder.resolve("store_00.sqlite");
         
         if (!Files.exists(dbPath)) {
             Files.createFile(dbPath);
@@ -48,8 +48,8 @@ public class DatabaseService {
     
     public static ErrorService migrate() {
         String sql = "CREATE TABLE IF NOT EXISTS barang (" +
-                "   kode_barang VARCHAR(6) PRIMARY KEY," +
-                "   nama_barang VARCHAR(100) NOT NULL" +
+                "   kode_barang VARCHAR(6) PRIMARY KEY CHECK(kode_barang <> '')," +
+                "   nama_barang TEXT NOT NULL CHECK(nama_barang <> '')" +
                 ");";
         
         try (
