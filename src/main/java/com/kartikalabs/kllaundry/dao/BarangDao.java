@@ -64,16 +64,39 @@ public class BarangDao implements BaseDao<BarangEntity, String>{
     }
 
     @Override
-    public BarangEntity update(BarangEntity object) {
-        try {
-            
+    public BarangEntity update(String identifier, BarangEntity object) {
+        String sql = "UPDATE barang SET nama_barang=?, kode_barang=? WHERE kode_barang=?";
+        
+        try (
+                Connection connection = DatabaseService.getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(sql);
+                ) {
+            preparedStatement.setString(1, object.getNamaBarang());
+            preparedStatement.setString(2, object.getKodeBarang());
+            preparedStatement.setString(3, identifier);
+            preparedStatement.executeUpdate();
+            return object;
         } catch (Exception e) {
+            logger.error(e.getMessage());
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 
     @Override
-    public boolean delete(String id) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public boolean delete(String identifier) {
+        String sql = "DELETE FROM barang WHERE kode_barang=?";
+        
+        try (
+                Connection connection = DatabaseService.getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(sql);
+                ) {
+            preparedStatement.setString(1, identifier);
+            
+            return preparedStatement.executeUpdate() > 0;
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
 
     
